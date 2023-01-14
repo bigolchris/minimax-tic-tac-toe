@@ -1,7 +1,8 @@
+import { LOCAL_STORAGE_KEY } from "../constants/constant";
 import { scoreStored } from "../types/types";
 
 export const setLocalStorage = (storage: scoreStored) => {
-  localStorage.setItem("score", JSON.stringify(storage));
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(storage));
 };
 
 //deep copy//
