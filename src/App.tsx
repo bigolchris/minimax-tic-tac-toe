@@ -67,4 +67,120 @@ function App() {
       setLocalStorage(scores);
     }
   };
+
+  const lineLocal = (
+    rowIdx: number,
+    colIdx: number,
+    symbol: string,
+    updatedBoards: string[][],
+    initResults: TotResults,
+    move?: EnMove
+  ): TotResults => {
+    if (
+      rowIdx < 0 ||
+      colIdx < 0 ||
+      rowIdx > updatedBoards.length - 1 ||
+      colIdx > updatedBoards.length - 1
+    ) {
+      return initResults;
+    }
+    if (!updatedBoards[rowIdx][colIdx]) {
+      return initResults;
+    }
+    if (updatedBoards[rowIdx][colIdx] !== symbol) {
+      return initResults;
+    }
+
+    if (!move) {
+      for (let key in ADJUSTMENT_OBJECT) {
+        initResults = lineLocal(
+          rowIdx + ADJUSTMENT_OBJECT[key as EnMove].row,
+          colIdx + ADJUSTMENT_OBJECT[key as EnMove].col,
+          symbol,
+          updatedBoards,
+          initResults,
+          key as EnMove
+        );
+      }
+    } else {
+      initResults = lineLocal(
+        rowIdx + ADJUSTMENT_OBJECT[move].row,
+        colIdx + ADJUSTMENT_OBJECT[move].col,
+        symbol,
+        updatedBoards,
+        initResults,
+        move
+      );
+
+      if (move === EnMove.LEFT || move === EnMove.RIGHT) {
+        initResults[EnResult.HORIZONTAL] = initResults[EnResult.HORIZONTAL] + 1;
+      } else if (move === EnMove.BOTTOM || move === EnMove.TOP) {
+        initResults[EnResult.VERTICAL] = initResults[EnResult.VERTICAL] + 1;
+      } else if (
+        move === EnMove.DIAGONAL_BOTTOM_LEFT ||
+        move === EnMove.DIAGONAL_TOP_RIGHT
+      ) {
+        initResults[EnResult.DIAGONAL_RIGHT] =
+          initResults[EnResult.DIAGONAL_RIGHT] + 1;
+      } else if (
+        move === EnMove.DIAGONAL_BOTTOM_RIGHT ||
+        move === EnMove.DIAGONAL_TOP_LEFT
+      ) {
+        initResults[EnResult.DIAGONAL_LEFT] =
+          initResults[EnResult.DIAGONAL_LEFT] + 1;
+      }
+    }
+    return initResults;
+  };
+
+  const CompBestMove = useCallback((
+    boards:string[][],
+    rowIdx:number,
+    colIdx:number,
+    isComputer:boolean,
+  ) => {
+    const isTie = (boards:string[][]) => {
+      for (let i = 0; i < boards.length; i++) {
+        for (let j = 0; j < boards.length; j++) {
+          if (!boards[i][j]) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    const getWinner = (
+      boards:string[][],
+      rowIdx:number,
+      colIdx:number,
+    ): boolean => {
+      const initResults: TotResults = {
+        [EnResult.HORIZONTAL]: 0,
+        [EnResult.VERTICAL]: 0,
+        [EnResult.DIAGONAL_LEFT]: 0,
+        [EnResult.DIAGONAL_RIGHT]: 0,
+      }
+
+      const result = lineLocal(rowIdx, colIdx, boards[rowIdx][colIdx], boards, initResults)
+
+      let isWin: boolean = false;
+      for(let key in result) {
+        if(result[key as EnResult] === MAX_SYMBOL) {
+          isWin = true;
+        }
+      }
+      return isWin
+    }
+
+
+    const miniMax = (
+      boards:string[][],
+      rowIdx:number,
+      colIdx:number,
+      isMax:boolean,
+      depth?:number,
+    )
+  },[])
+  
 }
