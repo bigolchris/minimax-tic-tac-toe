@@ -133,54 +133,173 @@ function App() {
     return initResults;
   };
 
-  const CompBestMove = useCallback((
-    boards:string[][],
-    rowIdx:number,
-    colIdx:number,
-    isComputer:boolean,
-  ) => {
-    const isTie = (boards:string[][]) => {
-      for (let i = 0; i < boards.length; i++) {
-        for (let j = 0; j < boards.length; j++) {
-          if (!boards[i][j]) {
-            return false;
+  const CompBestMove = useCallback(
+    (
+      boards: string[][],
+      rowIdx: number,
+      colIdx: number,
+      isComputer: boolean
+    ) => {
+      const isTie = (boards: string[][]) => {
+        for (let i = 0; i < boards.length; i++) {
+          for (let j = 0; j < boards.length; j++) {
+            if (!boards[i][j]) {
+              return false;
+            }
           }
         }
-      }
-      return true;
-    }
+        return true;
+      };
 
-    const getWinner = (
-      boards:string[][],
-      rowIdx:number,
-      colIdx:number,
-    ): boolean => {
-      const initResults: TotResults = {
-        [EnResult.HORIZONTAL]: 0,
-        [EnResult.VERTICAL]: 0,
-        [EnResult.DIAGONAL_LEFT]: 0,
-        [EnResult.DIAGONAL_RIGHT]: 0,
-      }
+      const getWinner = (
+        boards: string[][],
+        rowIdx: number,
+        colIdx: number
+      ): boolean => {
+        const initResults: TotResults = {
+          [EnResult.HORIZONTAL]: 0,
+          [EnResult.VERTICAL]: 0,
+          [EnResult.DIAGONAL_LEFT]: 0,
+          [EnResult.DIAGONAL_RIGHT]: 0,
+        };
 
-      const result = lineLocal(rowIdx, colIdx, boards[rowIdx][colIdx], boards, initResults)
+        const result = lineLocal(
+          rowIdx,
+          colIdx,
+          boards[rowIdx][colIdx],
+          boards,
+          initResults
+        );
 
-      let isWin: boolean = false;
-      for(let key in result) {
-        if(result[key as EnResult] === MAX_SYMBOL) {
-          isWin = true;
+        let isWin: boolean = false;
+        for (let key in result) {
+          if (result[key as EnResult] === MAX_SYMBOL) {
+            isWin = true;
+          }
         }
-      }
-      return isWin
+        return isWin;
+      };
+
+      const miniMax = (
+        boards: string[][],
+        rowIdx: number,
+        colIdx: number,
+        isMax: boolean,
+        depth?: number
+      ) => {
+        const player = isMax ? "O" : "X";
+        const isWin = getWinner(boards, rowIdx, colIdx);
+        const best = {
+          score: isMax ? -Infinity : Infinity,
+          i: rowIdx,
+          j: colIdx,
+        };
+
+        const nextDepth = depth ? depth - 1 : undefined;
+
+        if (player === "X" && isWin) {
+          return { score: 1, i: rowIdx, j: colIdx };
+        }
+        if (player === "O" && isWin) {
+          return { score: -1, i: rowIdx, j: colIdx };
+        }
+
+        if (isTie(boards)) {
+          return { score: 0, i: rowIdx, j: colIdx };
+        }
+
+        if (depth === 0) {
+          return best;
+        }
+
+        for (let i = 0; i < boards.length; i++) {
+          for (let j = 0; j < boards.length; j++) {
+            if (boards[i][j]) {
+              continue;
+            }
+
+            boards[i][j] = player;
+            const score = miniMax(
+              deepCopy(boards),
+              i,
+              j,
+              !isMax,
+              nextDepth
+            ).score;
+            boards[i][j] = "";
+
+            if (isMax) {
+              if (score > best.score) {
+                best.score = score;
+                best.i = i;
+                best.j = j;
+              }
+            } else {
+              if (score < best.score) {
+                best.score = score;
+                best.i = i;
+                best.j = j;
+              }
+            }
+          }
+        }
+        return best;
+      };
+
+      const depth = MAX_SYMBOL > 3 ? 3 : undefined;
+      return miniMax(deepCopy(boards), rowIdx, colIdx, isComputer, depth);
+    },
+    []
+  );
+
+  const clickBoards = (rowIdx: number, colIdx: number) => {
+    const newBoards = deepCopy(boards);
+    if (isGameOver) {
+      return;
     }
 
+    if (newBoards[rowIdx][colIdx]) {
+      return;
+    }
 
-    const miniMax = (
-      boards:string[][],
-      rowIdx:number,
-      colIdx:number,
-      isMax:boolean,
-      depth?:number,
-    )
-  },[])
-  
+    const initResults: TotResults = {
+      [EnResult.HORIZONTAL]: 0,
+      [EnResult.VERTICAL]: 0,
+      [EnResult.DIAGONAL_LEFT]: 0,
+      [EnResult.DIAGONAL_RIGHT]: 0,
+    };
+
+    if (isComputer) {
+      newBoards[rowIdx][colIdx] = "X";
+      const { i, j } = CompBestMove(newBoards, rowIdx, colIdx, true);
+
+      if (i !== rowIdx || j !== colIdx) {
+        newBoards[i][j] = "O";
+        boardFilledCtr.current = boardFilledCtr.current + 1;
+        const result = lineLocal(i, j, newBoards[i][j], newBoards, {
+          ...initResults,
+        });
+        calculateGameStatus(result, isComputer);
+      }
+    } else {
+      if (isFirstPlayer) {
+        newBoards[rowIdx][colIdx] = "X";
+      } else {
+        newBoards[rowIdx][colIdx] = "O";
+      }
+      dispatch({ type: GameAction.SET_PLAYERS, payload: !isFirstPlayer });
+    }
+
+    dispatch({ type: GameAction.SET_BOARDS, payload: newBoards });
+
+    boardFilledCtr.current = boardFilledCtr.current + 1;
+    const result = lineLocal(
+      rowIdx,
+      colIdx,
+      newBoards[rowIdx][colIdx],
+      newBoards,
+      { ...initResults }
+    );
+    calculateGameStatus(result, false);
+  };
 }
