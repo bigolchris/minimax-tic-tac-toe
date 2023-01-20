@@ -302,4 +302,46 @@ function App() {
     );
     calculateGameStatus(result, false);
   };
+
+  const genCell = useCallback(
+    (row: Array<string>, rowIdx: number): ReactNode => {
+      return row.map((cell, idx) => {
+        let content: ReactNode;
+        if (cell === "X") {
+          content = (
+            <img src={close} width="32" height="32" alt="EX ICON"></img>
+          );
+        } else if (cell === "O") {
+          content = (
+            <img src={circle} width="32" height="32" alt="OH ICON"></img>
+          );
+        } else if (cell === "") {
+          content = null;
+        }
+
+        return (
+          <div className="cell" key={`cell-${rowIdx}-${idx}`}>
+            <button
+              type="button"
+              onClick={() => clickBoards(rowIdx, idx)}
+              disabled={isGameOver}
+            >
+              <span>{content}</span>
+            </button>
+          </div>
+        );
+      });
+    },
+    [boards, isGameOver]
+  );
+
+  const genBoard = useCallback((): ReactNode => {
+    return boards.map((row, idx) => {
+      return (
+        <div className="row" key={`row-${idx}`}>
+          {genCell(row, idx)}
+        </div>
+      );
+    });
+  }, [boards, genCell]);
 }
