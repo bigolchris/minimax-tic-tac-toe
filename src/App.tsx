@@ -344,4 +344,6 @@ function App() {
       );
     });
   }, [boards, genCell]);
+
+  return <div className="App"></div>;
 }
