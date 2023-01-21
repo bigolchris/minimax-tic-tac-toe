@@ -345,7 +345,14 @@ function App() {
     });
   }, [boards, genCell]);
 
-  return <div className="App"></div>;
+  return (
+    <div className="App">
+      <div className="container">
+        {genBoard()}
+        <div className="row"></div>
+      </div>
+    </div>
+  );
 }
 
 export default App;
