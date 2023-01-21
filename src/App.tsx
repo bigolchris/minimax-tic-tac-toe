@@ -358,6 +358,14 @@ function App() {
             <h4>Tie</h4>
             <p>{state.scores.tie}</p>
           </div>
+          <div className="block-info">
+            <h4>{state.isComputer ? "Computer (O)" : "Player 2 (O)"}</h4>
+            <p>
+              {state.isComputer
+                ? state.scores.computer
+                : state.scores.secondPlayer}
+            </p>
+          </div>
         </div>
       </div>
     </div>
