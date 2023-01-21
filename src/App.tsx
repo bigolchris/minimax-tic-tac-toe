@@ -349,7 +349,16 @@ function App() {
     <div className="App">
       <div className="container">
         {genBoard()}
-        <div className="row"></div>
+        <div className="row">
+          <div className="block-info">
+            <h4>Player 1 (X)</h4>
+            <p>{state.scores.firstPlayer}</p>
+          </div>
+          <div className="block-info">
+            <h4>Tie</h4>
+            <p>{state.scores.tie}</p>
+          </div>
+        </div>
       </div>
     </div>
   );
