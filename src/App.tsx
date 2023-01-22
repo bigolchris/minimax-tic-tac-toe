@@ -367,6 +367,32 @@ function App() {
             </p>
           </div>
         </div>
+        <div className="row">
+          <button
+            type="button"
+            className="reset-btn"
+            disabled={!state.isGameOver}
+            onClick={() => {
+              dispatch({ type: GameAction.SET_BOARDS, payload: INIT_BOARD });
+              dispatch({ type: GameAction.SET_GAME_OVER, payload: false });
+            }}
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            className="play-computer"
+            disabled={!state.isGameOver}
+            onClick={() => {
+              dispatch({
+                type: GameAction.IS_COMPUTER,
+                payload: !state.isComputer,
+              });
+            }}
+          >
+            Play with {isComputer ? "2nd Player" : "Computer"}
+          </button>
+        </div>
       </div>
     </div>
   );
